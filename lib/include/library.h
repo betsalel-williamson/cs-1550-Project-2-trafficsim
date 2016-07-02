@@ -18,13 +18,12 @@ extern "C" {
 
 extern int my_clock;
 
-int foo();
-
 void sleep_ms(long ms);
 
-void increment_clock();
+void *increment_clock_thread(void *ptr);
 
 void init_simulator();
+
 void destruct_simulator();
 
 #ifdef __cplusplus

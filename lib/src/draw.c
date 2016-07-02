@@ -2,17 +2,16 @@
 // Created by School on 7/2/16.
 //
 
-#include <mach/boolean.h>
 #include "draw.h"
 
-char *left_car_s = "[*>";
-char *right_car_s = "<*]";
-char *road_s = "___";
-char *accident_s = "^!^";
-char *empty_s = "   ";
-char *error_s = "ERR";
-char *traffic_cones_active_s = "^A^";
-char *traffic_cones_sleeping_s = "^S^";
+const char *left_car_s = "[*>";
+const char *right_car_s = "<*]";
+const char *road_s = "___";
+const char *accident_s = "^!^";
+const char *empty_s = "   ";
+const char *error_s = "ERR";
+const char *traffic_cones_active_s = "^A^";
+const char *traffic_cones_sleeping_s = "^S^";
 
 void clear_screen() {
     const char msg[] = "\033[2J";
@@ -23,43 +22,35 @@ void clear_screen() {
 void print_instructions() {
     // print how to quit
     printf("\n");
-    printf("Quit? Enter 'q'.\n");
+    printf("Quit? Enter '^C'.\n");
     printf("\n");
     // print what's going on
     printf("Instructions:\n");
-    printf("Hit enter to advance the clock by 2 seconds.\n");
     printf("This is a car coming from the right '%s'\n", right_car_s);
     printf("This is a car coming from the left '%s'\n", left_car_s);
+    printf("This is a the flagperson sleeping '%s'\n", traffic_cones_sleeping_s);
+    printf("This is a car flagperson letting people through '%s'\n", traffic_cones_active_s);
     printf("\n");
 
 }
-
 
 void print_clock() {
     printf("Time elapsed is: %2.2d:%2.2d\n\n", my_clock / 60, my_clock % 60);
 }
 
-void draw() {
-    while (TRUE) {
-        clear_screen();
-
-        print_instructions();
-
-        print_clock();
-
-        draw_traffic();
-
-        increment_clock();
-
-        sleep_ms(1000);
-    }
+void print_number_of_cars_in_queue() {
+    printf("Total cars in queue:\nFrom right: %2.2d | From left: %2.2d\n\n", right_cars_in_queue(),
+           left_cars_in_queue());
 }
 
+void print_number_of_cars_out_of_queue() {
+    printf("Total cars processed:\nFrom right: %2.2d | From left: %2.2d\n\n", right_cars_out_of_queue(),
+           left_cars_out_of_queue());
+}
 
 void draw_car_numbers(car *road) {// draw left numbers
     int l;
     for (l = 0; l < ROAD_LENGTH; ++l) {
-
         if (road[l] != NULL) {
             printf("%2.2d ", road[l]->vin_number);
         } else if (road[l] == NULL) {
@@ -72,11 +63,25 @@ void draw_car_numbers(car *road) {// draw left numbers
     printf("\n");
 }
 
-void draw_road(car * road, int direction){
+void draw_road(car *road, int direction) {
     int j;
     for (j = 0; j < ROAD_LENGTH; ++j) {
-        if (j == MIDDLE) {
-            switch (calculate_median(road[j], RIGHT)) {
+        if (road[j] == NULL && j != MIDDLE) {
+            printf("%s", road_s);
+        } else if (road[j] != NULL && j != MIDDLE) {
+            switch (direction) {
+                case RIGHT:
+                    printf("%s", right_car_s);
+                    break;
+                case LEFT:
+                    printf("%s", left_car_s);
+                    break;
+                default:
+                    printf("%s", error_s);
+                    break;
+            }
+        } else if (j == MIDDLE) {
+            switch (calculate_median(road[j], direction)) {
                 case PRINT_ACCIDENT:
                     printf("%s", accident_s);
                     break;
@@ -96,14 +101,10 @@ void draw_road(car * road, int direction){
                     printf("%s", right_car_s);
                     break;
                 default:
+                    printf("%s", error_s);
                     break;
             };
-        } else if (road[j] != NULL) {
-            printf("%s", (direction == RIGHT ? right_car_s : (direction == LEFT ? left_car_s : "ERR")));
-        } else if (road[j] == NULL) {
-            printf("%s", road_s);
-        }
-        else {
+        } else {
             printf("%s", error_s);
         }
     }
@@ -127,3 +128,19 @@ void draw_traffic() {
 
     draw_car_numbers(left_road);
 }
+
+void draw() {
+    clear_screen();
+
+    print_instructions();
+
+    print_clock();
+
+    print_number_of_cars_in_queue();
+
+    draw_traffic();
+
+    print_number_of_cars_out_of_queue();
+}
+
+

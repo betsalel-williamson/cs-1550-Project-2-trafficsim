@@ -12,7 +12,6 @@ extern "C" {
 #include <sys/file.h>
 #include "library.h"
 #include <sys/queue.h>
-#include <lib/include/traffic_rules.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <printf.h>
@@ -34,6 +33,8 @@ extern "C" {
 
 void init_queues();
 
+void destruct_queues();
+
 void init_roads();
 
 typedef struct Car {
@@ -54,14 +55,21 @@ extern pthread_mutex_t left_lock;
 extern pthread_mutex_t move_left_lock;
 extern pthread_mutex_t move_right_lock;
 
-void move_cars();
-
 int calculate_median(car pCar, int direction);
 
-void *add_car_to_right_road(void *ptr);
+void *right_lane_traffic_thread(void *ptr);
 
-void *add_car_to_left_road(void *ptr);
+void *left_lane_traffic_thread(void *ptr);
 
+void *consume_cars_thread(void *ptr);
+
+int left_cars_in_queue();
+
+int right_cars_in_queue();
+
+int left_cars_out_of_queue();
+
+int right_cars_out_of_queue();
 
 #ifdef __cplusplus
 }

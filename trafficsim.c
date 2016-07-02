@@ -3,29 +3,25 @@
 //
 
 #include <signal.h>
-#include <sys/param.h>
 #include <mach/boolean.h>
-#include <stdio.h>
-#include <ctype.h>
 #include "library.h"
-#include "draw.h"
 
 /**
  * Handle quit to correctly exit and restore state on CTR-C.
  */
 void sig_handler(int signo) {
 
-    foo();
+    destruct_simulator();
 
     if (signo == SIGINT) {
-        return;
+        exit(EXIT_SUCCESS);
+    } else {
+        exit(EXIT_FAILURE);
     }
 }
 
 int main(int argc, char **argv) {
     signal(SIGINT, sig_handler);
-
-//    foo();
 
 /***
  *
@@ -48,25 +44,13 @@ int main(int argc, char **argv) {
 
     init_simulator();
 
-    char mystring[100];
-    char quit = FALSE;
-    while (quit == FALSE) {
+    while (TRUE) {
         draw();
-//        sleep_ms(2000);
 
-//        fflush(stdin);
-        fgets(mystring, 100, stdin);
-//        scanf("%c", &quit);
-//        scanf("%n",void);
-
-        if (toupper(mystring[0]) != 'Q') {
-            quit = FALSE;
-        } else {
-            quit = TRUE;
-        }
+        sleep_ms(500);
     }
 
-    destruct_simulator();
+//    destruct_simulator();
 
-    return 0;
+//    return 0;
 }

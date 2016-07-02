@@ -4,15 +4,8 @@
 
 #include "library.h"
 
-
 // goes from 0 to int
 int my_clock;
-
-int foo() {
-    printf("Hello World");
-
-    return 1;
-}
 
 void sleep_ms(long ms) {
     struct timespec request = {0};
@@ -28,20 +21,18 @@ void sleep_ms(long ms) {
 }
 
 
-void increment_clock() {
-    my_clock += 1;
-//    move_cars();
+void *increment_clock_thread(void *ptr) {
+
+    while (TRUE) {
+        my_clock += 1;
+        sleep_ms(1000);
+    }
+
+//    return &my_clock;
 }
 
-//Treat the road as two queues, and have a producer for each direction putting cars into the queues at the appropriate times.
-
-
-// thread to move right cars
-
-// thread to move left cars
-
-
 void init_simulator() {
+
     /* initialize random seed: */
     srand((unsigned int) time(NULL));
 
@@ -65,43 +56,40 @@ void init_simulator() {
     init_roads();
     init_queues();
 
-    pthread_t thread1, thread2;
-    int iret1, iret2;
-
     /* Create independent threads each of which will execute function */
 
-    iret1 = pthread_create(&thread1, NULL, add_car_to_right_road, NULL);
+    pthread_t produce_right_thread, produce_left_thread, consume_thread, clock_thread;
+    int iret1, iret2, iret3, iret4;
+
+    iret1 = pthread_create(&produce_right_thread, NULL, right_lane_traffic_thread, NULL);
     if (iret1) {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret1);
         exit(EXIT_FAILURE);
     }
 
-    iret2 = pthread_create(&thread2, NULL, add_car_to_left_road, NULL);
+    iret2 = pthread_create(&produce_left_thread, NULL, left_lane_traffic_thread, NULL);
     if (iret2) {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
         exit(EXIT_FAILURE);
     }
 
-//    pthread_join(thread1, NULL);
-//    pthread_join(thread2, NULL);
+    iret3 = pthread_create(&consume_thread, NULL, consume_cars_thread, NULL);
+    if (iret3) {
+        fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
+        exit(EXIT_FAILURE);
+    }
 
-
-
-
-//    printf("pthread_create() for thread 1 returns: %d\n", iret1);
-//    printf("pthread_create() for thread 2 returns: %d\n", iret2);
-
-    /* Wait till threads are complete before main continues. Unless we  */
-    /* wait we run the risk of executing an exit which will terminate   */
-    /* the process and all threads before the threads have completed.   */
-
-
-
-//    exit(EXIT_SUCCESS);
+    iret4 = pthread_create(&clock_thread, NULL, increment_clock_thread, NULL);
+    if (iret4) {
+        fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
+        exit(EXIT_FAILURE);
+    }
 }
 
 
 void destruct_simulator() {
+    destruct_queues();
+
     pthread_mutex_destroy(&right_lock);
     pthread_mutex_destroy(&left_lock);
     pthread_mutex_destroy(&move_left_lock);
