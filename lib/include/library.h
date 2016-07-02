@@ -8,7 +8,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "traffic_rules.h"
+#include <printf.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+extern int my_clock;
+
 int foo();
+
+void sleep_ms(long ms);
+
+void increment_clock();
+
+void init_simulator();
+void destruct_simulator();
+
 #ifdef __cplusplus
 }
 #endif

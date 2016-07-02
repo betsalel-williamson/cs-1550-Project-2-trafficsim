@@ -27,7 +27,7 @@ link_directories(${SysCallLibs_BINARY_DIR}/src)
 # aggressive about warnings.
 add_library(SysCallLibs STATIC
         src/library.c
-        include/library.h)
+        include/library.h src/traffic_rules.c include/traffic_rules.h src/draw.c include/draw.h)
 
 SET_TARGET_PROPERTIES(SysCallLibs PROPERTIES LINKER_LANGUAGE C)
 

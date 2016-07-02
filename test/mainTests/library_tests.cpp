@@ -9,9 +9,9 @@ TEST(Library_tests, Open_zeroth_framebuffer) {
     // opening this file will work
 
     int actual = foo();
-    int expected = 0;
+//    int expected = 0;
 
 //    printf("Opened filedesc: %d\n", filedesc);
 
-    ASSERT_EQ(expected, actual);
+    ASSERT_EQ(1, actual);
 }
