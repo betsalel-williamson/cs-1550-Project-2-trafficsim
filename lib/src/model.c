@@ -41,27 +41,6 @@ void destruct_queues() {
     STAILQ_INIT(left_car_queue_head_ptr);
 }
 
-
-//void add_to_left_lane_car_queue(int vin, struct left_lane_car_queue *ptr) {
-//    struct car_tail_queue *my_car = malloc(sizeof(struct car_tail_queue));      /* Insert at the tail. */
-//    my_car->c = malloc(sizeof(car));
-//    my_car->c->vin_number = vin;
-//    my_car->c->position = OFF_ROAD;
-//    my_car->c->lane = LEFT;
-//    STAILQ_INSERT_TAIL(ptr, my_car, entries);
-//}
-//
-//
-//void add_to_right_lane_car_queue(int vin, struct right_lane_car_queue *ptr) {
-//    struct car_tail_queue *my_car = malloc(sizeof(struct car_tail_queue));      /* Insert at the tail. */
-//    my_car->c = malloc(sizeof(car));
-//    my_car->c->vin_number = vin;
-//    my_car->c->position = OFF_ROAD;
-//    my_car->c->lane = RIGHT;
-//    STAILQ_INSERT_TAIL(ptr, my_car, entries);
-//}
-
-
 void add_car_to_queue(direction d) {
     struct car_tail_queue *my_car = malloc(sizeof(struct car_tail_queue));      /* Insert at the tail. */
     my_car->c = malloc(sizeof(car));
@@ -131,13 +110,6 @@ bool lane_has_car(direction d) {
     }
     return result;
 }
-//bool right_lane_has_car() {
-//    return !STAILQ_EMPTY(right_car_queue_head_ptr);
-//}
-//
-//bool left_lane_has_car() {
-//    return !STAILQ_EMPTY(left_car_queue_head_ptr);
-//}
 
 car right_lane[ROAD_LENGTH + 1]; // goes from road size to 0
 car left_lane[ROAD_LENGTH + 1]; // goes from 0 to road size

@@ -34,36 +34,28 @@ int calculate_median(car pCar, direction d) {
 
     if (d == RIGHT) {
         if (pCar != NULL) {
-//            printf("%s", right_car);
             status = PRINT_RIGHT_CAR;
         } else {
             if (direction_to_let_through == RIGHT) {
-//                printf("%s", road);
                 status = PRINT_ROAD;
             } else {
                 if (flag_person == SLEEPING) {
-//                    printf("%s", traffic_cones_sleeping);
                     status = PRINT_TRAFFIC_CONE_SLEEPING;
-                } else if (flag_person == !SLEEPING) {
-//                    printf("%s", traffic_cones_active);
+                } else if (flag_person == AWAKE) {
                     status = PRINT_TRAFFIC_CONE_AWAKE;
                 }
             }
         }
     } else if (d == LEFT) {
         if (pCar != NULL) {
-//            printf("%s", left_car);
             status = PRINT_LEFT_CAR;
         } else {
             if (direction_to_let_through == LEFT) {
-//                printf("%s", road);
                 status = PRINT_ROAD;
             } else {
                 if (flag_person == SLEEPING) {
-//                    printf("%s", traffic_cones_sleeping);
                     status = PRINT_TRAFFIC_CONE_SLEEPING;
-                } else if (flag_person == !SLEEPING) {
-//                    printf("%s", traffic_cones_active);
+                } else if (flag_person == AWAKE) {
                     status = PRINT_TRAFFIC_CONE_AWAKE;
                 }
             }
@@ -88,13 +80,6 @@ void *produce_left_lane_traffic_thread(void *ptr) {
             add_car = TRUE;
         }
 
-//        if (car_vin % 10 == 0
-//            || add_car == FALSE) {
-//            sleep_ms(TRAFFIC_SPEED_MS*2);
-//        }
-//        if (!lane_has_car(LEFT)) {
-//            sleep_ms(TRAFFIC_SPEED_MS*10);
-//        }
         if (add_car == FALSE || cars_in_queue(LEFT) > 10) {
             sleep_ms(TRAFFIC_SPEED_MS * 10);
         }
@@ -118,15 +103,6 @@ void *produce_right_lane_traffic_thread(void *ptr) {
         } else if (!lane_has_car(RIGHT)) {
             add_car = TRUE;
         }
-
-//        if (car_vin % 10 == 0
-//            || add_car == FALSE) {
-//            sleep_ms(TRAFFIC_SPEED_MS*2);
-//        }
-
-//        if (!lane_has_car(RIGHT)) {
-//            sleep_ms(TRAFFIC_SPEED_MS*10);
-//        }
 
         if (add_car == FALSE || cars_in_queue(RIGHT) > 10) {
             sleep_ms(TRAFFIC_SPEED_MS * 10);
