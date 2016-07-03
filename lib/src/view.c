@@ -2,7 +2,7 @@
 // Created by School on 7/2/16.
 //
 
-#include "draw.h"
+#include "view.h"
 
 const char *left_car_s = "[*>";
 const char *right_car_s = "<*]";
@@ -39,13 +39,13 @@ void print_clock() {
 }
 
 void print_number_of_cars_in_queue() {
-    printf("Total cars in queue:\nFrom right: %2.2d | From left: %2.2d\n\n", right_cars_in_queue(),
-           left_cars_in_queue());
+    printf("Total cars in queue:\nFrom right: %2.2d | From left: %2.2d\n\n", cars_in_queue(RIGHT),
+           cars_in_queue(LEFT));
 }
 
 void print_number_of_cars_out_of_queue() {
-    printf("Total cars processed:\nFrom right: %2.2d | From left: %2.2d\n\n", right_cars_out_of_queue(),
-           left_cars_out_of_queue());
+    printf("Total cars processed:\nFrom right: %2.2d | From left: %2.2d\n\n", cars_out_of_queue(RIGHT),
+           cars_out_of_queue(LEFT));
 }
 
 void draw_car_numbers(car *road) {// draw left numbers
@@ -118,15 +118,15 @@ void draw_traffic() {
     // 11 - 20 = right side
 
     // draw right numbers
-    draw_car_numbers(right_road);
+    draw_car_numbers(right_lane);
 
     // draw right road
-    draw_road(right_road, RIGHT);
+    draw_road(right_lane, RIGHT);
 
     // left road
-    draw_road(left_road, LEFT);
+    draw_road(left_lane, LEFT);
 
-    draw_car_numbers(left_road);
+    draw_car_numbers(left_lane);
 }
 
 void draw() {

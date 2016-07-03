@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "traffic_rules.h"
+#include "controller.h"
 #include <mach/boolean.h>
 #include <printf.h>
 #include "library.h"
@@ -20,15 +20,6 @@ extern "C" {
 #define PRINT_ROAD 3
 #define PRINT_TRAFFIC_CONE_SLEEPING 4
 #define PRINT_TRAFFIC_CONE_AWAKE 5
-
-const extern char *left_car_s;
-const extern char *right_car_s;
-const extern char *road_s;
-const extern char *accident_s;
-const extern char *empty_s;
-const extern char *error_s;
-const extern char *traffic_cones_active_s;
-const extern char *traffic_cones_sleeping_s;
 
 void draw();
 

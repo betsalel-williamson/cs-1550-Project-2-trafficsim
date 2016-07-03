@@ -9,14 +9,12 @@
 extern "C" {
 #endif
 
-#include "traffic_rules.h"
+#include "controller.h"
 #include <printf.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
-
-extern int my_clock;
 
 void sleep_ms(long ms);
 
