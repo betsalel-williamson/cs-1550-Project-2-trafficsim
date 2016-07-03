@@ -20,7 +20,10 @@ extern "C" {
 #include "model.h"
 #include "library.h"
 
+#define TRAFFIC_SPEED_MS 300
+
 #define SLEEPING false
+#define AWAKE true
 
 #define LET_RIGHT_TRAFFIC_THROUGH 0
 #define LET_LEFT_TRAFFIC_THROUGH 1
@@ -38,11 +41,13 @@ extern pthread_mutex_t move_right_traffic_lock;
 
 int calculate_median(car pCar, int direction);
 
+int cars_before_median(direction d);
+
 void *produce_right_lane_traffic_thread(void *ptr);
 
 void *produce_left_lane_traffic_thread(void *ptr);
 
-void *consume_cars_thread(void *ptr);
+void *flag_person_thread(void *ptr);
 
 void *move_right_lane_thread(void *ptr);
 

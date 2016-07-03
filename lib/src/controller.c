@@ -4,9 +4,9 @@
 #include <lib/include/model.h>
 #include "controller.h"
 
-#define TRAFFIC_SPEED_MS 500
+
 int flag_person = SLEEPING;
-int direction_to_let_through = LEFT;
+direction direction_to_let_through = LEFT;
 
 //int left_lane_has_car = 0;
 //int right_lane_has_car = 0;
@@ -25,12 +25,14 @@ int direction_to_let_through = LEFT;
 
 int calculate_median(car pCar, direction d) {
     int status = -1;
+    // the lane can either be
 
-    if (direction_to_let_through != RIGHT && pCar != NULL) {
-        status = PRINT_ACCIDENT;
-    } else if (direction_to_let_through != LEFT && pCar != NULL) {
-        status = PRINT_ACCIDENT;
-    } else if (d == RIGHT) {
+    // blocked awake
+    // blocked sleeping
+    // open
+    // accident - this isn't used because we assume that there won't be accidents
+
+    if (d == RIGHT) {
         if (pCar != NULL) {
 //            printf("%s", right_car);
             status = PRINT_RIGHT_CAR;
@@ -73,13 +75,8 @@ int calculate_median(car pCar, direction d) {
     return status;
 }
 
-
-pthread_mutex_t produce_left_lane_traffic_lock; // for use when moving cars
-
 void *produce_left_lane_traffic_thread(void *ptr) {
     while (TRUE) {
-        pthread_mutex_lock(&produce_left_lane_traffic_lock);
-
         signed char add_car = FALSE;
 
         int r = rand() % 10;
@@ -91,31 +88,27 @@ void *produce_left_lane_traffic_thread(void *ptr) {
             add_car = TRUE;
         }
 
-        if (car_vin % 10 == 0
-            || add_car == FALSE) {
-            sleep_ms(5000);
-        }
-        if (!lane_has_car(LEFT)) {
-//            sleep_ms(20000);
+//        if (car_vin % 10 == 0
+//            || add_car == FALSE) {
+//            sleep_ms(TRAFFIC_SPEED_MS*2);
+//        }
+//        if (!lane_has_car(LEFT)) {
+//            sleep_ms(TRAFFIC_SPEED_MS*10);
+//        }
+        if (add_car == FALSE || cars_in_queue(LEFT) > 10) {
+            sleep_ms(TRAFFIC_SPEED_MS * 10);
         }
 
         if (add_car) {
             add_car_to_queue(LEFT);
         }
-
-        pthread_mutex_unlock(&produce_left_lane_traffic_lock);
-
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
 }
 
-pthread_mutex_t produce_right_lane_traffic_lock; // for use when moving cars
-
 void *produce_right_lane_traffic_thread(void *ptr) {
     while (TRUE) {
-        pthread_mutex_lock(&produce_right_lane_traffic_lock);
-
         signed char add_car = FALSE;
 
         int r = rand() % 10;
@@ -126,47 +119,130 @@ void *produce_right_lane_traffic_thread(void *ptr) {
             add_car = TRUE;
         }
 
-        if (car_vin % 10 == 0
-            || add_car == FALSE) {
-            sleep_ms(5000);
-        }
+//        if (car_vin % 10 == 0
+//            || add_car == FALSE) {
+//            sleep_ms(TRAFFIC_SPEED_MS*2);
+//        }
 
-        if (!lane_has_car(RIGHT)) {
-//            sleep_ms(20000);
+//        if (!lane_has_car(RIGHT)) {
+//            sleep_ms(TRAFFIC_SPEED_MS*10);
+//        }
+
+        if (add_car == FALSE || cars_in_queue(RIGHT) > 10) {
+            sleep_ms(TRAFFIC_SPEED_MS * 10);
         }
 
         if (add_car) {
             add_car_to_queue(RIGHT);
         }
-
-        pthread_mutex_unlock(&produce_right_lane_traffic_lock);
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
 }
 
-
-void move_cars() {
-    // spawn threads();
-
+void wake_flag_person(direction d) {
+    flag_person = AWAKE;
 }
 
+int wait_time_of_car_before_median(direction d) {
+    int result = 0;
+    int i;
+    switch (d) {
+        case RIGHT:
+            if (right_lane[MIDDLE + 1] == NULL) {
+                result = 0;
+            } else {
+                result = right_lane[MIDDLE + 1]->wait_time;
+            }
+            break;
+        case LEFT:
+            if (left_lane[MIDDLE - 1] == NULL) {
+                result = 0;
+            } else {
+                result = left_lane[MIDDLE - 1]->wait_time;
+            }
+            break;
+        default:
+            exit(EXIT_FAILURE);
+    }
 
-pthread_mutex_t move_right_traffic_lock; // for use when moving cars
+    return result;
+}
 
+int cars_before_median(direction d) {
+    int result = 0;
+    int i;
+    switch (d) {
+        case RIGHT:
+            for (i = START_OF_RIGHT_LANE; i >= MIDDLE; --i) {
+                if (right_lane[i] != NULL) {
+                    result++;
+                }
+            }
+            break;
+        case LEFT:
+            for (i = START_OF_LEFT_LANE; i < MIDDLE; ++i) {
+                if (left_lane[i] != NULL) {
+                    result++;
+                }
+            }
+            break;
+        default:
+            exit(EXIT_FAILURE);
+    }
 
-//int next_position(direction i){
-//    switch (i) {
-//        case RIGHT:
-//            pCar->position--;
-//            break;
-//        case LEFT:
-//            pCar->position++;
-//            break;
-//        default:
-//            exit(EXIT_FAILURE);
-//    }
-//}
+    return result;
+}
+
+// When a car arrives at either end, the flagperson will allow traffic from that side to continue to flow, until
+// there are no more cars, or until there are 10 cars lined up on the opposing side, at which time they will be
+// allowed to pass.
+void *flag_person_thread(void *ptr) {
+    while (TRUE) {
+
+        // am I awake or asleep
+        if (flag_person == SLEEPING) {
+            // sleep
+            // could call sleep call
+        } else if (flag_person == AWAKE) {
+
+            if (!lane_has_car(RIGHT) || !lane_has_car(LEFT)) {
+                flag_person = SLEEPING;
+                continue;
+            }
+
+            // until there are no more cars,
+            // or until there are 10 cars lined up on the opposing side, at which time they will be allowed to pass.
+            switch (direction_to_let_through) {
+                case LEFT:
+                    if (cars_in_queue(RIGHT) >= 10
+                        //|| (wait_time_of_car_before_median(RIGHT) > 10)
+                        || cars_before_median(LEFT) == 0) {
+                        // switch directions
+                        direction_to_let_through = NONE;
+                        sleep_ms(TRAFFIC_SPEED_MS * 2);
+                        direction_to_let_through = RIGHT;
+                    }
+                    break;
+                case RIGHT:
+                    if (cars_in_queue(LEFT) >= 10
+                        //|| (wait_time_of_car_before_median(LEFT) > 10)
+                        || cars_before_median(RIGHT) == 0) {
+                        // switch directions
+                        direction_to_let_through = NONE;
+                        sleep_ms(TRAFFIC_SPEED_MS * 2);
+                        direction_to_let_through = LEFT;
+                    }
+                    break;
+                default:
+                    // sleeping
+                    break;
+            }
+        }
+        sleep_ms(TRAFFIC_SPEED_MS * 2);
+    }
+    return NULL;
+}
 
 void move_car(car pCar, direction i) {
     switch (i) {
@@ -213,83 +289,12 @@ bool before(int position, int end_position, direction d) {
     return result;
 }
 
-void *move_right_lane_thread(void *ptr) {
-    while (true) {
-        pthread_mutex_lock(&move_right_traffic_lock);
-
-        // go through each car in queue
-//        int first_position = right_car_queue_head_ptr->stqh_first->c->position;
-//        int previous_position = first_position;
-
-        struct car_tail_queue *current = STAILQ_FIRST(right_car_queue_head_ptr);
-        struct car_tail_queue *previous = NULL;
-
-        if (current != NULL) {
-
-            // handle the first car
-            if (current->c->position == OFF_ROAD) {
-                current->c->position = START_OF_RIGHT_LANE;
-                right_lane[current->c->position] = current->c;
-            } else if (next_postion(current->c->position, RIGHT)
-                       == MIDDLE && direction_to_let_through != RIGHT) {
-                // if next is median check to see that I can move
-            } else if (before(current->c->position, END_OF_RIGHT_LANE, RIGHT)) {
-                right_lane[current->c->position] = NULL;
-                move_car(current->c, RIGHT);
-                right_lane[current->c->position] = current->c;
-            } else if (current->c->position == END_OF_RIGHT_LANE) {
-                right_lane[current->c->position] = NULL;
-                remove_car_from_queue(RIGHT);
-            }
-
-            while (current != NULL) {
-
-                previous = current;
-
-                current = current->entries.stqe_next;
-
-                if (current == NULL) {
-                    break;
-                } else if (current->c->position == OFF_ROAD && previous->c->position == START_OF_RIGHT_LANE) {
-                    break;
-                }
-
-                if (previous->c->position == next_postion(current->c->position, RIGHT)
-                    // if next is median check to see that I can move
-                    || (next_postion(current->c->position, RIGHT) == MIDDLE && direction_to_let_through != RIGHT)) {
-                    // no room to move this car
-                } else {
-                    if (current->c->position == OFF_ROAD) {
-                        current->c->position = START_OF_RIGHT_LANE;
-                        right_lane[current->c->position] = current->c;
-                    } else {
-
-                        // if next is median check to see that I can move
-                        // if I can't move then I stop
-                        // if I can move then I move to the next
-                        right_lane[current->c->position] = NULL;
-                        move_car(current->c, RIGHT);
-                        right_lane[current->c->position] = current->c;
-                    }
-                }
-            }
-        }
-
-        pthread_mutex_unlock(&move_right_traffic_lock);
-        sleep_ms(TRAFFIC_SPEED_MS);
-    }
-    return NULL;
-}
-
-pthread_mutex_t move_left_traffic_lock; // for use when moving cars
+// from prompt: Treat the road as two queues, and have a producer for each direction putting cars into the queues at the
+// appropriate times. this is the move right lane  and move left lane threads
 
 void *move_left_lane_thread(void *ptr) {
     while (true) {
-        pthread_mutex_lock(&move_left_traffic_lock);
         // go through each car in queue
-//        int first_position = right_car_queue_head_ptr->stqh_first->c->position;
-//        int previous_position = first_position;
-
         struct car_tail_queue *current = STAILQ_FIRST(left_car_queue_head_ptr);
         struct car_tail_queue *previous = NULL;
 
@@ -302,6 +307,8 @@ void *move_left_lane_thread(void *ptr) {
             } else if (next_postion(current->c->position, LEFT)
                        == MIDDLE && direction_to_let_through != LEFT) {
                 // if next is median check to see that I can move
+                wake_flag_person(LEFT);
+                current->c->wait_time++;
             } else if (before(current->c->position, END_OF_LEFT_LANE, LEFT)) {
                 left_lane[current->c->position] = NULL;
                 move_car(current->c, LEFT);
@@ -323,10 +330,13 @@ void *move_left_lane_thread(void *ptr) {
                     break;
                 }
 
-                if (previous->c->position == next_postion(current->c->position, LEFT)
-                    // if next is median check to see that I can move
-                    || (next_postion(current->c->position, LEFT) == MIDDLE && direction_to_let_through != LEFT)) {
+                if (previous->c->position == next_postion(current->c->position, LEFT)) {
                     // no room to move this car
+                    current->c->wait_time++;
+                } else if (next_postion(current->c->position, LEFT) == MIDDLE && direction_to_let_through != LEFT) {
+                    // if next is median check to see that I can move
+                    wake_flag_person(LEFT);
+                    current->c->wait_time++;
                 } else {
                     if (current->c->position == OFF_ROAD) {
                         current->c->position = START_OF_LEFT_LANE;
@@ -339,28 +349,73 @@ void *move_left_lane_thread(void *ptr) {
                 }
             }
         }
-        pthread_mutex_unlock(&move_left_traffic_lock);
         sleep_ms(TRAFFIC_SPEED_MS);
-
     }
 }
 
-// TODO: implement consumers for left and right road with way to alternate between the two. Make sure to use direction_to_let_through
-void *consume_cars_thread(void *ptr) {
+void *move_right_lane_thread(void *ptr) {
+    while (true) {
 
-    // move the left cars down
+        // go through each car in queue
+        struct car_tail_queue *current = STAILQ_FIRST(right_car_queue_head_ptr);
+        struct car_tail_queue *previous = NULL;
 
-    // move the right cars down
+        if (current != NULL) {
 
-    // When a car arrives at either end, the flagperson will allow traffic from that side to continue to flow, until
-    // there are no more cars, or until there are 10 cars lined up on the opposing side, at which time they will be
-    // allowed to pass.
+            // handle the first car
+            if (current->c->position == OFF_ROAD) {
+                current->c->position = START_OF_RIGHT_LANE;
+                right_lane[current->c->position] = current->c;
+            } else if (next_postion(current->c->position, RIGHT)
+                       == MIDDLE && direction_to_let_through != RIGHT) {
+                // if next is median check to see that I can move
+                wake_flag_person(RIGHT);
+                current->c->wait_time++;
+            } else if (before(current->c->position, END_OF_RIGHT_LANE, RIGHT)) {
+                right_lane[current->c->position] = NULL;
+                move_car(current->c, RIGHT);
+                right_lane[current->c->position] = current->c;
+            } else if (current->c->position == END_OF_RIGHT_LANE) {
+                right_lane[current->c->position] = NULL;
+                remove_car_from_queue(RIGHT);
+            }
 
+            while (current != NULL) {
+
+                previous = current;
+
+                current = current->entries.stqe_next;
+
+                if (current == NULL) {
+                    break;
+                } else if (current->c->position == OFF_ROAD && previous->c->position == START_OF_RIGHT_LANE) {
+                    break;
+                }
+
+                if (previous->c->position == next_postion(current->c->position, RIGHT)) {
+                    // no room to move this car
+                    current->c->wait_time++;
+                } else if (next_postion(current->c->position, RIGHT) == MIDDLE && direction_to_let_through != RIGHT) {
+                    // if next is median
+                    wake_flag_person(RIGHT);
+                    current->c->wait_time++;
+                } else {
+                    if (current->c->position == OFF_ROAD) {
+                        current->c->position = START_OF_RIGHT_LANE;
+                        right_lane[current->c->position] = current->c;
+                    } else {
+                        // if I can move then I move to the next
+                        right_lane[current->c->position] = NULL;
+                        move_car(current->c, RIGHT);
+                        right_lane[current->c->position] = current->c;
+                    }
+                }
+            }
+        }
+        sleep_ms(TRAFFIC_SPEED_MS);
+    }
     return NULL;
 }
 
-// TODO: create producers to fill up left and right roads from the traffic threads
-// from prompt: Treat the road as two queues, and have a producer for each direction putting cars into the queues at the
-// appropriate times.
 
 

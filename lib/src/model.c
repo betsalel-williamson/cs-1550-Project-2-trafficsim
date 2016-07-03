@@ -63,12 +63,12 @@ void destruct_queues() {
 
 
 void add_car_to_queue(direction d) {
-
     struct car_tail_queue *my_car = malloc(sizeof(struct car_tail_queue));      /* Insert at the tail. */
     my_car->c = malloc(sizeof(car));
     my_car->c->vin_number = car_vin++;
     my_car->c->position = OFF_ROAD;
     my_car->c->lane = d;
+    my_car->c->wait_time = 0;
 
     switch (d) {
         case LEFT:

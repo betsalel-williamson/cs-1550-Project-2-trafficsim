@@ -48,11 +48,17 @@ void print_number_of_cars_out_of_queue() {
            cars_out_of_queue(LEFT));
 }
 
+void print_number_of_cars_before_median() {
+    printf("Total cars before median:\nFrom right: %2.2d | From left: %2.2d\n\n", cars_before_median(RIGHT),
+           cars_before_median(LEFT));
+
+}
+
 void draw_car_numbers(car *road) {// draw left numbers
     int l;
     for (l = 0; l < ROAD_LENGTH; ++l) {
         if (road[l] != NULL) {
-            printf("%2.2d ", road[l]->vin_number);
+            printf("%2.2d ", road[l]->vin_number % 100);
         } else if (road[l] == NULL) {
             printf("%s", empty_s);
         }
@@ -141,6 +147,8 @@ void draw() {
     draw_traffic();
 
     print_number_of_cars_out_of_queue();
+
+    print_number_of_cars_before_median();
 }
 
 

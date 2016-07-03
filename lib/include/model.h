@@ -16,6 +16,7 @@ extern "C" {
 
 typedef struct Car {
     int position;
+    int wait_time;
     int lane;
     int vin_number;
 } *car;
@@ -61,6 +62,7 @@ extern int my_clock;
 
 #define RIGHT 0
 #define LEFT 1
+#define NONE 2
 
 void init_queues();
 

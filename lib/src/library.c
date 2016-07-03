@@ -5,7 +5,6 @@
 #include "library.h"
 
 
-
 void sleep_ms(long ms) {
     struct timespec request = {0};
 
@@ -35,35 +34,18 @@ void init_simulator() {
     /* initialize random seed: */
     srand((unsigned int) time(NULL));
 
-    if (pthread_mutex_init(&produce_right_lane_traffic_lock, NULL) != 0) {
-        printf("\n mutex init failed\n");
-        exit(EXIT_FAILURE);
-    }
-    if (pthread_mutex_init(&produce_left_lane_traffic_lock, NULL) != 0) {
-        printf("\n mutex init failed\n");
-        exit(EXIT_FAILURE);
-    }
-    if (pthread_mutex_init(&move_left_traffic_lock, NULL) != 0) {
-        printf("\n mutex init failed\n");
-        exit(EXIT_FAILURE);
-    }
-    if (pthread_mutex_init(&move_right_traffic_lock, NULL) != 0) {
-        printf("\n mutex init failed\n");
-        exit(EXIT_FAILURE);
-    }
-
     init_roads();
     init_queues();
 
     /* Create independent threads each of which will execute function */
-
     pthread_t produce_right_thread,
             produce_left_thread,
             consume_right_thread,
             consume_left_thread,
+            consume_flag_person_thread,
             clock_thread;
 
-    int iret1, iret2, iret3, iret4, iret5;
+    int iret1, iret2, iret3, iret4, iret5, iret6;
 
     iret1 = pthread_create(&produce_right_thread, NULL, produce_right_lane_traffic_thread, NULL);
     if (iret1) {
@@ -87,22 +69,21 @@ void init_simulator() {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
         exit(EXIT_FAILURE);
     }
-    iret5 = pthread_create(&clock_thread, NULL, increment_clock_thread, NULL);
+
+    iret5 = pthread_create(&consume_flag_person_thread, NULL, flag_person_thread, NULL);
     if (iret5) {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
         exit(EXIT_FAILURE);
     }
 
-    //    move_right_lane_thread(NULL);
-    //    move_left_lane_thread(NULL);
+    iret6 = pthread_create(&clock_thread, NULL, increment_clock_thread, NULL);
+    if (iret6) {
+        fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
+        exit(EXIT_FAILURE);
+    }
 }
 
 
 void destruct_simulator() {
     destruct_queues();
-
-    pthread_mutex_destroy(&produce_right_lane_traffic_lock);
-    pthread_mutex_destroy(&produce_left_lane_traffic_lock);
-    pthread_mutex_destroy(&move_left_traffic_lock);
-    pthread_mutex_destroy(&move_left_traffic_lock);
 }

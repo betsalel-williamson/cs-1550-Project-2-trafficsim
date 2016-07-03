@@ -20,6 +20,14 @@ void sig_handler(int signo) {
     }
 }
 
+#define REFRESH_RATE 100
+
+void *draw_thread(void *ptr) {
+    while (true) {
+        draw();
+        sleep_ms(REFRESH_RATE);
+    }
+}
 int main(int argc, char **argv) {
     signal(SIGINT, sig_handler);
 
@@ -44,13 +52,34 @@ int main(int argc, char **argv) {
 
     init_simulator();
 
-    while (TRUE) {
-        draw();
+    // spawn draw // capture user input to speed up or slow down traffic?
 
-        sleep_ms(500);
+    pthread_t draw_pthread;
+
+    int iret1;
+
+    iret1 = pthread_create(&draw_pthread, NULL, draw_thread, NULL);
+
+    if (iret1) {
+        fprintf(stderr, "Error - pthread_create() return code: %d\n", iret1);
+        exit(EXIT_FAILURE);
     }
 
-//    destruct_simulator();
+    char mystring[100];
+    char quit = FALSE;
+    while (quit == FALSE) {
 
-//    return 0;
+        fgets(mystring, 100, stdin);
+
+
+        if (toupper(mystring[0]) != 'Q') {
+            quit = FALSE;
+        } else {
+            quit = TRUE;
+        }
+    }
+
+    destruct_simulator();
+
+    return 0;
 }
