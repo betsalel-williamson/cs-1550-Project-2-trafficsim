@@ -254,24 +254,24 @@ struct cs1550_sem {
 } my_semaphore;
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-my_semaphore left_buffer_mutex;
+static my_semaphore left_buffer_mutex;
 //= {
 //1, 0, NULL};
-my_semaphore left_fill_count;
+static my_semaphore left_fill_count;
 //= {
 //0, 0, NULL};
-my_semaphore left_empty_count;
+static my_semaphore left_empty_count;
 //= {
 //BUFFER_SIZE, 0, NULL};
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-my_semaphore right_buffer_mutex;
+static my_semaphore right_buffer_mutex;
 //= {
 //1, 0, NULL};
-my_semaphore right_fill_count;
+static my_semaphore right_fill_count;
 //= {
 //0, 0, NULL};
-my_semaphore right_empty_count;
+static my_semaphore right_empty_count;
 //= {
 //BUFFER_SIZE, 0, NULL};
 
