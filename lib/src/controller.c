@@ -1,27 +1,92 @@
 //
-// Created by School on 7/2/16.
+// Created by Betsalel Williamson on 7/2/16.
 //
 #include <lib/include/model.h>
 #include "controller.h"
 
-
 int flag_person = SLEEPING;
 direction direction_to_let_through = LEFT;
 
-//int left_lane_has_car = 0;
-//int right_lane_has_car = 0;
+#define BUFFER_SIZE 10
 
-//    When a car arrives, there is an 80% chance another car is following it, but once no car comes, there is a 20 second delay before any new car will come.
+STAILQ_HEAD(stailhead, entry) head =
+        STAILQ_HEAD_INITIALIZER(head);
 
-//    // fill right
-//    produce_right();
-//    move_right_cars();
-//
-//    // fill left
-//    product_left();
-//    move_left_(cars);
+struct sem_entry {
+    struct task_struct *task;
+    STAILQ_ENTRY(sem_entry) entries;    /* Tail queue. */
+};
+
+STAILQ_HEAD(sem_stailhead, sem_entry) sem_head;
+struct sem_stailhead *sem_headp;
+/* Singly-linked tail queue head. */
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+semaphore left_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head)};
+semaphore left_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head)};
+semaphore left_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head)};
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+semaphore right_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head)};
+semaphore right_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head)};
+semaphore right_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head)};
 
 
+void left_producer() {
+    while (true) {
+        item = produceItem();
+
+        down(&left_empty_count);
+        down(&left_buffer_mutex);
+
+        putItemIntoBuffer(item);
+
+        up(&left_buffer_mutex);
+        up(&left_fill_count);
+    }
+}
+
+void left_consumer() {
+    while (true) {
+        down(&left_fill_count);
+        down(&left_buffer_mutex);
+
+        item = removeItemFromBuffer();
+
+        up(&left_buffer_mutex);
+        up(&left_empty_count);
+
+        consumeItem(item);
+    }
+}
+
+void right_producer() {
+    while (true) {
+        item = produceItem();
+
+        down(&right_empty_count);
+        down(&right_buffer_mutex);
+
+        putItemIntoBuffer(item);
+
+        up(&right_buffer_mutex);
+        up(&right_fill_count);
+    }
+}
+
+void right_consumer() {
+    while (true) {
+        down(&right_fill_count);
+        down(&right_buffer_mutex);
+
+        item = removeItemFromBuffer();
+
+        up(&right_buffer_mutex);
+        up(&right_empty_count);
+
+        consumeItem(item);
+    }
+}
 
 int calculate_median(car pCar, direction d) {
     int status = -1;
@@ -175,15 +240,11 @@ int cars_before_median(direction d) {
 // allowed to pass.
 void *flag_person_thread(void *ptr) {
     while (TRUE) {
-
-        // am I awake or asleep
-        if (flag_person == SLEEPING) {
-            // sleep
-            // could call sleep call
-        } else if (flag_person == AWAKE) {
+        if (flag_person == AWAKE) {
 
             if (!lane_has_car(RIGHT) || !lane_has_car(LEFT)) {
                 flag_person = SLEEPING;
+                // sleep here
                 continue;
             }
 
@@ -268,7 +329,7 @@ bool before(int position, int end_position, direction d) {
 // from prompt: Treat the road as two queues, and have a producer for each direction putting cars into the queues at the
 // appropriate times. this is the move right lane  and move left lane threads
 
-void *move_left_lane_thread(void *ptr) {
+void *consume_left_lane_traffic_thread(void *ptr) {
     while (true) {
         // go through each car in queue
         struct car_tail_queue *current = STAILQ_FIRST(left_car_queue_head_ptr);
@@ -329,7 +390,7 @@ void *move_left_lane_thread(void *ptr) {
     }
 }
 
-void *move_right_lane_thread(void *ptr) {
+void *consume_right_lane_traffic_thread(void *ptr) {
     while (true) {
 
         // go through each car in queue

@@ -1,5 +1,5 @@
 //
-// Created by School on 6/4/16.
+// Created by Betsalel Williamson on 6/4/16.
 //
 
 #include "library.h"
@@ -59,12 +59,12 @@ void init_simulator() {
         exit(EXIT_FAILURE);
     }
 
-    iret3 = pthread_create(&consume_right_thread, NULL, move_right_lane_thread, NULL);
+    iret3 = pthread_create(&consume_right_thread, NULL, consume_right_lane_traffic_thread, NULL);
     if (iret3) {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
         exit(EXIT_FAILURE);
     }
-    iret4 = pthread_create(&consume_left_thread, NULL, move_left_lane_thread, NULL);
+    iret4 = pthread_create(&consume_left_thread, NULL, consume_left_lane_traffic_thread, NULL);
     if (iret4) {
         fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
         exit(EXIT_FAILURE);

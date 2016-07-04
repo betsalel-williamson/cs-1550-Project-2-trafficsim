@@ -1,5 +1,5 @@
 //
-// Created by School on 7/3/16.
+// Created by Betsalel Williamson on 7/3/16.
 //
 #include "model.h"
 

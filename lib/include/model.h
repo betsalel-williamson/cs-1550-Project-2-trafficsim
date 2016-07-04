@@ -1,5 +1,5 @@
 //
-// Created by School on 7/3/16.
+// Created by Betsalel Williamson on 7/3/16.
 //
 
 #ifndef MAIN_MODEL_H
@@ -13,6 +13,19 @@ extern "C" {
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/queue.h>
+
+#ifdef LINUX
+#include <linux/unistd.h>
+#endif
+
+#define down(sem) syscall(__NR_cs1550_down, sem);
+#define up(sem) syscall(__NR_cs1550_up, sem);
+
+typedef struct cs1550_sem {
+    int value;
+    //Some process queue of your devising
+    struct stailhead *headp;                /* Singly-linked tail queue head. */
+} semaphore;
 
 typedef struct Car {
     int position;

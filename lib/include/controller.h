@@ -1,5 +1,5 @@
 //
-// Created by School on 7/2/16.
+// Created by Betsalel Williamson on 7/2/16.
 //
 
 #ifndef MAIN_TRAFFIC_RULES_H
@@ -49,9 +49,9 @@ void *produce_left_lane_traffic_thread(void *ptr);
 
 void *flag_person_thread(void *ptr);
 
-void *move_right_lane_thread(void *ptr);
+void *consume_right_lane_traffic_thread(void *ptr);
 
-void *move_left_lane_thread(void *ptr);
+void *consume_left_lane_traffic_thread(void *ptr);
 
 int next_postion(int position, direction i);
 

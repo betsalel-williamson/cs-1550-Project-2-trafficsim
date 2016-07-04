@@ -1,5 +1,5 @@
 //
-// Created by School on 7/2/16.
+// Created by Betsalel Williamson on 7/2/16.
 //
 
 #include "view.h"
