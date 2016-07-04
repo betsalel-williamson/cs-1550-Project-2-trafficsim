@@ -11,7 +11,7 @@
 #include <sys/queue.h>
 #include <ctype.h>
 #include <linux/unistd.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 #define TRUE true
 #define FALSE 0
@@ -42,11 +42,11 @@ void *increment_clock_thread(void *ptr) {
 
 //******* begin model ******
 
-#define __NR_cs1550_down    325
-#define __NR_cs1550_up        326
-
-#define down(sem) syscall(__NR_cs1550_down, sem);
-#define up(sem) syscall(__NR_cs1550_up, sem);
+//#define __NR_cs1550_down    325
+//#define __NR_cs1550_up        326
+//
+//#define down(sem) syscall(__NR_cs1550_down, sem);
+//#define up(sem) syscall(__NR_cs1550_up, sem);
 
 typedef struct Car {
     int position;
@@ -247,14 +247,14 @@ int cars_in_queue(direction d) {
 #define BUFFER_SIZE 10
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore left_buffer_mutex = {1, 0, NULL};
-semaphore left_fill_count = {0, 0, NULL};
-semaphore left_empty_count = {BUFFER_SIZE, 0, NULL};
+struct cs1550_sem left_buffer_mutex = {1, 0, NULL};
+struct cs1550_sem left_fill_count = {0, 0, NULL};
+struct cs1550_sem left_empty_count = {BUFFER_SIZE, 0, NULL};
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore right_buffer_mutex = {1, 0, NULL};
-semaphore right_fill_count = {0, 0, NULL};
-semaphore right_empty_count = {BUFFER_SIZE, 0, NULL};
+struct cs1550_sem right_buffer_mutex = {1, 0, NULL};
+struct cs1550_sem right_fill_count = {0, 0, NULL};
+struct cs1550_sem right_empty_count = {BUFFER_SIZE, 0, NULL};
 
 //******* end model ******
 
