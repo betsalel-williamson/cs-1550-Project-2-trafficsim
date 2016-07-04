@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <sys/queue.h>
 #include <ctype.h>
-//#include <linux/unistd.h>
+#include <linux/unistd.h>
 #include <unistd.h>
 
 #define TRUE true
@@ -246,15 +246,22 @@ int cars_in_queue(direction d) {
 
 #define BUFFER_SIZE 10
 
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-struct cs1550_sem left_buffer_mutex = {1, 0, NULL};
-struct cs1550_sem left_fill_count = {0, 0, NULL};
-struct cs1550_sem left_empty_count = {BUFFER_SIZE, 0, NULL};
+struct cs1550_sem {
+    int value;
+    int current_index;
+    //Some process queue of your devising
+    struct task_struct *task[20];
+} my_semaphore;
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-struct cs1550_sem right_buffer_mutex = {1, 0, NULL};
-struct cs1550_sem right_fill_count = {0, 0, NULL};
-struct cs1550_sem right_empty_count = {BUFFER_SIZE, 0, NULL};
+my_semaphore left_buffer_mutex = {1, 0, NULL};
+my_semaphore left_fill_count = {0, 0, NULL};
+my_semaphore left_empty_count = {BUFFER_SIZE, 0, NULL};
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+my_semaphore right_buffer_mutex = {1, 0, NULL};
+my_semaphore right_fill_count = {0, 0, NULL};
+my_semaphore right_empty_count = {BUFFER_SIZE, 0, NULL};
 
 //******* end model ******
 
