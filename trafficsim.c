@@ -3,7 +3,6 @@
 //
 
 #include <signal.h>
-//#include <mach/boolean.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,8 +38,6 @@ void *increment_clock_thread(void *ptr) {
         my_clock += 1;
         sleep_ms(1000);
     }
-
-//    return &my_clock;
 }
 
 //******* begin model ******
@@ -50,11 +47,6 @@ void *increment_clock_thread(void *ptr) {
 
 #define down(sem) syscall(__NR_cs1550_down, sem);
 #define up(sem) syscall(__NR_cs1550_up, sem);
-
-typedef struct cs1550_sem {
-    int value;
-    struct stailhead *headp;                /* Singly-linked tail queue head. */
-} semaphore;
 
 typedef struct Car {
     int position;
@@ -254,28 +246,15 @@ int cars_in_queue(direction d) {
 
 #define BUFFER_SIZE 10
 
-struct sem_entry {
-    struct task_struct *task;
-    STAILQ_ENTRY(sem_entry) entries;    /* Tail queue. */
-};
-
-/* Singly-linked tail queue head. */
-STAILQ_HEAD(sem_stailhead, sem_entry) sem_head1,
-        sem_head2,
-        sem_head3,
-        sem_head4,
-        sem_head5,
-        sem_head6;
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+semaphore left_buffer_mutex = {1, 0, NULL};
+semaphore left_fill_count = {0, 0, NULL};
+semaphore left_empty_count = {BUFFER_SIZE, 0, NULL};
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore left_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head1)};
-semaphore left_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head2)};
-semaphore left_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head3)};
-
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore right_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head4)};
-semaphore right_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head5)};
-semaphore right_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head6)};
+semaphore right_buffer_mutex = {1, 0, NULL};
+semaphore right_fill_count = {0, 0, NULL};
+semaphore right_empty_count = {BUFFER_SIZE, 0, NULL};
 
 //******* end model ******
 
