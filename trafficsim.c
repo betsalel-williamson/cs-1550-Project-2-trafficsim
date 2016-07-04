@@ -3,7 +3,7 @@
 //
 
 #include <signal.h>
-#include <mach/boolean.h>
+//#include <mach/boolean.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,8 +11,11 @@
 #include <stdbool.h>
 #include <sys/queue.h>
 #include <ctype.h>
-//#include <linux/unistd.h>
-#include <unistd.h>
+#include <linux/unistd.h>
+//#include <unistd.h>
+
+#define TRUE true
+#define FALSE 0
 
 void sleep_ms(long ms) {
     struct timespec request = {0};
@@ -235,7 +238,8 @@ car right_lane[ROAD_LENGTH + 1]; // goes from road size to 0
 car left_lane[ROAD_LENGTH + 1]; // goes from 0 to road size
 
 void init_road(car *road) {
-    for (int i = 0; i < ROAD_LENGTH; ++i) {
+    int i;
+    for (i = 0; i < ROAD_LENGTH; ++i) {
         road[i] = NULL;
     }
 }
