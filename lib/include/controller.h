@@ -20,24 +20,14 @@ extern "C" {
 #include "model.h"
 #include "library.h"
 
-#define TRAFFIC_SPEED_MS 300
+#define TRAFFIC_SPEED_MS 2000
 
 #define SLEEPING false
 #define AWAKE true
 
-#define LET_RIGHT_TRAFFIC_THROUGH 0
-#define LET_LEFT_TRAFFIC_THROUGH 1
-
-//#define
-
 extern int car_vin;
 extern int flag_person;
 extern int direction_to_let_through;
-
-extern pthread_mutex_t produce_right_lane_traffic_lock;
-extern pthread_mutex_t produce_left_lane_traffic_lock;
-extern pthread_mutex_t move_left_traffic_lock;
-extern pthread_mutex_t move_right_traffic_lock;
 
 int calculate_median(car pCar, int direction);
 

@@ -1,92 +1,11 @@
 //
 // Created by Betsalel Williamson on 7/2/16.
 //
-#include <lib/include/model.h>
+
 #include "controller.h"
 
 int flag_person = SLEEPING;
 direction direction_to_let_through = LEFT;
-
-#define BUFFER_SIZE 10
-
-STAILQ_HEAD(stailhead, entry) head =
-        STAILQ_HEAD_INITIALIZER(head);
-
-struct sem_entry {
-    struct task_struct *task;
-    STAILQ_ENTRY(sem_entry) entries;    /* Tail queue. */
-};
-
-STAILQ_HEAD(sem_stailhead, sem_entry) sem_head;
-struct sem_stailhead *sem_headp;
-/* Singly-linked tail queue head. */
-
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore left_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head)};
-semaphore left_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head)};
-semaphore left_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head)};
-
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore right_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head)};
-semaphore right_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head)};
-semaphore right_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head)};
-
-
-void left_producer() {
-    while (true) {
-        item = produceItem();
-
-        down(&left_empty_count);
-        down(&left_buffer_mutex);
-
-        putItemIntoBuffer(item);
-
-        up(&left_buffer_mutex);
-        up(&left_fill_count);
-    }
-}
-
-void left_consumer() {
-    while (true) {
-        down(&left_fill_count);
-        down(&left_buffer_mutex);
-
-        item = removeItemFromBuffer();
-
-        up(&left_buffer_mutex);
-        up(&left_empty_count);
-
-        consumeItem(item);
-    }
-}
-
-void right_producer() {
-    while (true) {
-        item = produceItem();
-
-        down(&right_empty_count);
-        down(&right_buffer_mutex);
-
-        putItemIntoBuffer(item);
-
-        up(&right_buffer_mutex);
-        up(&right_fill_count);
-    }
-}
-
-void right_consumer() {
-    while (true) {
-        down(&right_fill_count);
-        down(&right_buffer_mutex);
-
-        item = removeItemFromBuffer();
-
-        up(&right_buffer_mutex);
-        up(&right_empty_count);
-
-        consumeItem(item);
-    }
-}
 
 int calculate_median(car pCar, direction d) {
     int status = -1;
@@ -132,6 +51,20 @@ int calculate_median(car pCar, direction d) {
     return status;
 }
 
+//void left_producer() {
+//    while (true) {
+//        item = produceItem();
+//
+//        down(&left_empty_count);
+//        down(&left_buffer_mutex);
+//
+//        putItemIntoBuffer(item);
+//
+//        up(&left_buffer_mutex);
+//        up(&left_fill_count);
+//    }
+//}
+
 void *produce_left_lane_traffic_thread(void *ptr) {
     while (TRUE) {
         signed char add_car = FALSE;
@@ -150,12 +83,32 @@ void *produce_left_lane_traffic_thread(void *ptr) {
         }
 
         if (add_car) {
+            down(&left_empty_count);
+            down(&left_buffer_mutex);
+
             add_car_to_queue(LEFT);
+
+            up(&left_buffer_mutex);
+            up(&left_fill_count);
         }
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
 }
+
+//void right_producer() {
+//    while (true) {
+//        item = produceItem();
+//
+//        down(&right_empty_count);
+//        down(&right_buffer_mutex);
+//
+//        putItemIntoBuffer(item);
+//
+//        up(&right_buffer_mutex);
+//        up(&right_fill_count);
+//    }
+//}
 
 void *produce_right_lane_traffic_thread(void *ptr) {
     while (TRUE) {
@@ -174,7 +127,13 @@ void *produce_right_lane_traffic_thread(void *ptr) {
         }
 
         if (add_car) {
+            down(&right_empty_count);
+            down(&right_buffer_mutex);
+
             add_car_to_queue(RIGHT);
+
+            up(&right_buffer_mutex);
+            up(&right_fill_count);
         }
         sleep_ms(TRAFFIC_SPEED_MS);
     }
@@ -329,9 +288,26 @@ bool before(int position, int end_position, direction d) {
 // from prompt: Treat the road as two queues, and have a producer for each direction putting cars into the queues at the
 // appropriate times. this is the move right lane  and move left lane threads
 
+//void left_consumer() {
+//    while (true) {
+//        down(&left_fill_count);
+//        down(&left_buffer_mutex);
+//
+//        item = removeItemFromBuffer();
+//
+//        up(&left_buffer_mutex);
+//        up(&left_empty_count);
+//
+//        consumeItem(item);
+//    }
+//}
+
 void *consume_left_lane_traffic_thread(void *ptr) {
     while (true) {
         // go through each car in queue
+        down(&left_fill_count);
+        down(&left_buffer_mutex);
+
         struct car_tail_queue *current = STAILQ_FIRST(left_car_queue_head_ptr);
         struct car_tail_queue *previous = NULL;
 
@@ -386,12 +362,33 @@ void *consume_left_lane_traffic_thread(void *ptr) {
                 }
             }
         }
+
+        up(&left_buffer_mutex);
+        up(&left_empty_count);
+
         sleep_ms(TRAFFIC_SPEED_MS);
     }
 }
 
+//void right_consumer() {
+//    while (true) {
+//        down(&right_fill_count);
+//        down(&right_buffer_mutex);
+//
+//        item = removeItemFromBuffer();
+//
+//        up(&right_buffer_mutex);
+//        up(&right_empty_count);
+//
+//        consumeItem(item);
+//    }
+//}
+
 void *consume_right_lane_traffic_thread(void *ptr) {
     while (true) {
+
+        down(&right_fill_count);
+        down(&right_buffer_mutex);
 
         // go through each car in queue
         struct car_tail_queue *current = STAILQ_FIRST(right_car_queue_head_ptr);
@@ -449,6 +446,9 @@ void *consume_right_lane_traffic_thread(void *ptr) {
                 }
             }
         }
+        up(&right_buffer_mutex);
+        up(&right_empty_count);
+
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;

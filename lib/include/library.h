@@ -9,12 +9,12 @@
 extern "C" {
 #endif
 
-#include "controller.h"
 #include <printf.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "controller.h"
 
 void sleep_ms(long ms);
 

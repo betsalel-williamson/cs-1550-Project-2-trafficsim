@@ -18,6 +18,9 @@ extern "C" {
 #include <linux/unistd.h>
 #endif
 
+#define __NR_cs1550_down    325
+#define __NR_cs1550_up        326
+
 #define down(sem) syscall(__NR_cs1550_down, sem);
 #define up(sem) syscall(__NR_cs1550_up, sem);
 
@@ -26,6 +29,21 @@ typedef struct cs1550_sem {
     //Some process queue of your devising
     struct stailhead *headp;                /* Singly-linked tail queue head. */
 } semaphore;
+
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+extern semaphore left_buffer_mutex;
+// = {1, &STAILQ_HEAD_INITIALIZER(sem_head1)};
+extern semaphore left_fill_count;
+// = {0, &STAILQ_HEAD_INITIALIZER(sem_head2)};
+extern semaphore left_empty_count;// = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head3)};
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+extern semaphore right_buffer_mutex;
+// = {1, &STAILQ_HEAD_INITIALIZER(sem_head4)};
+extern semaphore right_fill_count;
+// = {0, &STAILQ_HEAD_INITIALIZER(sem_head5)};
+extern semaphore right_empty_count;// = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head6)};
 
 typedef struct Car {
     int position;

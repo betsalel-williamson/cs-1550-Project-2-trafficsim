@@ -4,7 +4,6 @@
 #include "model.h"
 
 int car_vin = 1;
-
 // goes from 0 to int
 int my_clock;
 
@@ -144,7 +143,30 @@ int cars_in_queue(direction d) {
     return i;
 }
 
+#define BUFFER_SIZE 10
 
+struct sem_entry {
+    struct task_struct *task;
+    STAILQ_ENTRY(sem_entry) entries;    /* Tail queue. */
+};
+
+/* Singly-linked tail queue head. */
+STAILQ_HEAD(sem_stailhead, sem_entry) sem_head1,
+        sem_head2,
+        sem_head3,
+        sem_head4,
+        sem_head5,
+        sem_head6;
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+semaphore left_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head1)};
+semaphore left_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head2)};
+semaphore left_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head3)};
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+semaphore right_buffer_mutex = {1, &STAILQ_HEAD_INITIALIZER(sem_head4)};
+semaphore right_fill_count = {0, &STAILQ_HEAD_INITIALIZER(sem_head5)};
+semaphore right_empty_count = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head6)};
 
 
 
