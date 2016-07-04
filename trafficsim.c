@@ -254,14 +254,26 @@ struct cs1550_sem {
 } my_semaphore;
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-my_semaphore left_buffer_mutex = {1, 0, NULL};
-my_semaphore left_fill_count = {0, 0, NULL};
-my_semaphore left_empty_count = {BUFFER_SIZE, 0, NULL};
+my_semaphore left_buffer_mutex;
+//= {
+//1, 0, NULL};
+my_semaphore left_fill_count;
+//= {
+//0, 0, NULL};
+my_semaphore left_empty_count;
+//= {
+//BUFFER_SIZE, 0, NULL};
 
 // similar to "semaphore buffer_mutex = 1", but different (see notes below)
-my_semaphore right_buffer_mutex = {1, 0, NULL};
-my_semaphore right_fill_count = {0, 0, NULL};
-my_semaphore right_empty_count = {BUFFER_SIZE, 0, NULL};
+my_semaphore right_buffer_mutex;
+//= {
+//1, 0, NULL};
+my_semaphore right_fill_count;
+//= {
+//0, 0, NULL};
+my_semaphore right_empty_count;
+//= {
+//BUFFER_SIZE, 0, NULL};
 
 //******* end model ******
 
@@ -929,6 +941,15 @@ void *draw_thread(void *ptr) {
 }
 
 void init_simulator() {
+
+    left_buffer_mutex = {1, 0, NULL};
+    left_fill_count = {0, 0, NULL};
+    left_empty_count = {BUFFER_SIZE, 0, NULL};
+
+// similar to "semaphore buffer_mutex = 1", but different (see notes below)
+    right_buffer_mutex = {1, 0, NULL};
+    right_fill_count = {0, 0, NULL};
+    right_empty_count = {BUFFER_SIZE, 0, NULL};
 
     /* initialize random seed: */
     srand((unsigned int) time(NULL));
