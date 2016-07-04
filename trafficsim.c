@@ -12,7 +12,7 @@
 #include <sys/queue.h>
 #include <ctype.h>
 #include <linux/unistd.h>
-//#include <unistd.h>
+#include <unistd.h>
 
 #define TRUE true
 #define FALSE 0
@@ -53,24 +53,8 @@ void *increment_clock_thread(void *ptr) {
 
 typedef struct cs1550_sem {
     int value;
-    //Some process queue of your devising
     struct stailhead *headp;                /* Singly-linked tail queue head. */
 } semaphore;
-
-
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore left_buffer_mutex;
-// = {1, &STAILQ_HEAD_INITIALIZER(sem_head1)};
-semaphore left_fill_count;
-// = {0, &STAILQ_HEAD_INITIALIZER(sem_head2)};
-semaphore left_empty_count;// = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head3)};
-
-// similar to "semaphore buffer_mutex = 1", but different (see notes below)
-semaphore right_buffer_mutex;
-// = {1, &STAILQ_HEAD_INITIALIZER(sem_head4)};
-semaphore right_fill_count;
-// = {0, &STAILQ_HEAD_INITIALIZER(sem_head5)};
-semaphore right_empty_count;// = {BUFFER_SIZE, &STAILQ_HEAD_INITIALIZER(sem_head6)};
 
 typedef struct Car {
     int position;
