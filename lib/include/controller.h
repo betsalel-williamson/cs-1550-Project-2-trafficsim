@@ -20,7 +20,7 @@ extern "C" {
 #include "model.h"
 #include "library.h"
 
-#define TRAFFIC_SPEED_MS 300
+#define TRAFFIC_SPEED_MS 2000
 
 #define SLEEPING false
 #define AWAKE true
