@@ -1,5 +1,6 @@
 # idea files
 .idea/
+cmake-build-debug/
 
 # misc files
 _build/

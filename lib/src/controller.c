@@ -77,6 +77,7 @@ int calculate_median(car pCar, direction d) {
 
 void *produce_left_lane_traffic_thread(void *ptr) {
     while (TRUE) {
+        pthread_mutex_lock(&produce_traffic_mutex);
         signed char add_car = FALSE;
 
         int r = rand() % 10;
@@ -102,6 +103,7 @@ void *produce_left_lane_traffic_thread(void *ptr) {
         if (add_car) {
             add_car_to_queue(LEFT);
         }
+        pthread_mutex_unlock(&produce_traffic_mutex);
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
@@ -109,6 +111,7 @@ void *produce_left_lane_traffic_thread(void *ptr) {
 
 void *produce_right_lane_traffic_thread(void *ptr) {
     while (TRUE) {
+        pthread_mutex_lock(&produce_traffic_mutex);
         signed char add_car = FALSE;
 
         int r = rand() % 10;
@@ -135,6 +138,7 @@ void *produce_right_lane_traffic_thread(void *ptr) {
         if (add_car) {
             add_car_to_queue(RIGHT);
         }
+        pthread_mutex_unlock(&produce_traffic_mutex);
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
@@ -205,9 +209,12 @@ void *flag_person_thread(void *ptr) {
             // sleep
             // could call sleep call
         } else if (flag_person == AWAKE) {
+            pthread_mutex_lock(&move_traffic_mutex);
 
             if (!lane_has_car(RIGHT) || !lane_has_car(LEFT)) {
                 flag_person = SLEEPING;
+
+                pthread_mutex_unlock(&move_traffic_mutex);
                 continue;
             }
 
@@ -219,8 +226,8 @@ void *flag_person_thread(void *ptr) {
                         //|| (wait_time_of_car_before_median(RIGHT) > 10)
                         || cars_before_median(LEFT) == 0) {
                         // switch directions
-                        direction_to_let_through = NONE;
-                        sleep_ms(TRAFFIC_SPEED_MS * 2);
+//                        direction_to_let_through = NONE;
+//                        sleep_ms(TRAFFIC_SPEED_MS * 2);
                         direction_to_let_through = RIGHT;
                     }
                     break;
@@ -229,8 +236,8 @@ void *flag_person_thread(void *ptr) {
                         //|| (wait_time_of_car_before_median(LEFT) > 10)
                         || cars_before_median(RIGHT) == 0) {
                         // switch directions
-                        direction_to_let_through = NONE;
-                        sleep_ms(TRAFFIC_SPEED_MS * 2);
+//                        direction_to_let_through = NONE;
+//                        sleep_ms(TRAFFIC_SPEED_MS * 2);
                         direction_to_let_through = LEFT;
                     }
                     break;
@@ -238,6 +245,8 @@ void *flag_person_thread(void *ptr) {
                     // sleeping
                     break;
             }
+
+            pthread_mutex_unlock(&move_traffic_mutex);
         }
         sleep_ms(TRAFFIC_SPEED_MS * 2);
     }
@@ -294,6 +303,8 @@ bool before(int position, int end_position, direction d) {
 
 void *move_left_lane_thread(void *ptr) {
     while (true) {
+        pthread_mutex_lock(&move_traffic_mutex);
+
         // go through each car in queue
         struct car_tail_queue *current = STAILQ_FIRST(left_car_queue_head_ptr);
         struct car_tail_queue *previous = NULL;
@@ -349,6 +360,7 @@ void *move_left_lane_thread(void *ptr) {
                 }
             }
         }
+        pthread_mutex_unlock(&move_traffic_mutex);
         sleep_ms(TRAFFIC_SPEED_MS);
     }
 }
@@ -356,6 +368,7 @@ void *move_left_lane_thread(void *ptr) {
 void *move_right_lane_thread(void *ptr) {
     while (true) {
 
+        pthread_mutex_lock(&move_traffic_mutex);
         // go through each car in queue
         struct car_tail_queue *current = STAILQ_FIRST(right_car_queue_head_ptr);
         struct car_tail_queue *previous = NULL;
@@ -412,6 +425,7 @@ void *move_right_lane_thread(void *ptr) {
                 }
             }
         }
+        pthread_mutex_unlock(&move_traffic_mutex);
         sleep_ms(TRAFFIC_SPEED_MS);
     }
     return NULL;
