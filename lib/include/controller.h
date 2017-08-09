@@ -15,6 +15,7 @@ extern "C" {
 #include <stdlib.h>
 #include <printf.h>
 #include <mach/boolean.h>
+#include <pthread.h>
 
 #include "view.h"
 #include "model.h"
@@ -34,10 +35,8 @@ extern int car_vin;
 extern int flag_person;
 extern int direction_to_let_through;
 
-extern pthread_mutex_t produce_right_lane_traffic_lock;
-extern pthread_mutex_t produce_left_lane_traffic_lock;
-extern pthread_mutex_t move_left_traffic_lock;
-extern pthread_mutex_t move_right_traffic_lock;
+pthread_mutex_t produce_traffic_mutex;
+pthread_mutex_t move_traffic_mutex;
 
 int calculate_median(car pCar, int direction);
 
